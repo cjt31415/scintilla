@@ -1,0 +1,36 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up micromamba + scintilla env
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: environment.yml
+          environment-name: scintilla
+          cache-environment: true
+          cache-downloads: true
+
+      - name: Show env info
+        run: |
+          micromamba info
+          python --version
+          python -c "import scintilla, cartopy, rasterio, geopandas; print('imports ok')"
+
+      - name: Run pytest
+        run: pytest tests/ -v
+
+      - name: Run ruff
+        run: ruff check src/ tests/

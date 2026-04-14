@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.ruff_cache/
+.pytest_cache/
+
+# Environment
+.env
+.venv/
+*.env
+
+# OS
+.DS_Store
+
+# Claude Code
+.claude/
+
+# Data — user-downloaded raw files should not be committed
+production_data/
+_demo_subset/
+*.nc
+*.nc.aux.xml
+*.tif.aux.xml
+
+# …except the bundled demo subset, which ships with the repo so
+# a fresh clone can render the reference animation without any downloads.
+!data/glm_raw/**
+!data/isslis/**

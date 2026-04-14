@@ -1,0 +1,70 @@
+# Reference pyproject.toml for new projects.
+#
+# Claude: When creating a new project, copy this file to /opt/<project>/pyproject.toml
+# and fill in the project-specific fields (name, description, dependencies).
+# Then run: pip install -e .
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scintilla"
+version = "0.1.0"
+description = "NASA Earth science data tools for searching, downloading, processing, and visualizing satellite data"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas",
+    "python-dotenv",
+    "earthaccess",
+    "geopandas",
+    "shapely",
+    "fiona",
+    "pyproj",
+    "rasterio",
+    "cartopy",
+    "ffmpeg-python",
+    "joblib",
+    "boto3",
+    "geojsonio",
+    "h5py",
+    "pyarrow",
+    "tqdm",
+    "folium",
+    "timezonefinder",
+    "netCDF4",
+    "opencv-python",
+    "psutil",
+    "pytz",
+    "rioxarray",
+    "scikit-image",
+    "xarray",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "ruff"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long — let readability govern
+]

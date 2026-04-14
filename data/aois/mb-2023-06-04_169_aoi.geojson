@@ -1,0 +1,39 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "mb-2023-06-04",
+        "peak_event": "2023-06-04: Manitoba/Saskatchewan severe thunderstorm complex, 3 ISS LIS passes in 3.2 hours (1217 flashes), monotonic decay arc 476\u2192400\u2192341"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -109.0,
+              42.9375
+            ],
+            [
+              -91.0,
+              42.9375
+            ],
+            [
+              -91.0,
+              53.0625
+            ],
+            [
+              -109.0,
+              53.0625
+            ],
+            [
+              -109.0,
+              42.9375
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
