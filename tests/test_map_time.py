@@ -1,24 +1,21 @@
 """Tests for scintilla.common.map_time — pure math, parsing, and conversion functions."""
 
-import math
-import pytest
-import pytz
 from datetime import datetime
 
-from scintilla.common.utils import get_utm_zone, convert_to_utc
 from scintilla.common.map_time import (
-    haversine,
     bearing,
     bearing_to_cardinal,
+    convert_timezone,
+    haversine,
     km_to_deg,
     km_to_miles,
+    make_timezone_aware,
     miles_to_km,
     parse_date_string,
     parse_location,
-    convert_timezone,
-    make_timezone_aware,
     process_dt_window,
 )
+from scintilla.common.utils import convert_to_utc, get_utm_zone
 
 
 # ---------------------------------------------------------------------------
