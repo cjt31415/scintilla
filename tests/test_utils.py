@@ -1,17 +1,32 @@
 """Tests for scintilla.common.utils — pure functions and simple geometry operations."""
 
-import pytest
-import pytz
 from datetime import datetime
 
 import geopandas as gpd
-from shapely.geometry import Point, Polygon, LineString, MultiLineString
+import pytest
+import pytz
+from shapely.geometry import LineString, MultiLineString, Point, Polygon
 
+from scintilla.common.utils import (
+    aoi_area_in_km2,
+    clean_state_name,
+    convert_to_utc,
+    extract_coordinates,
+    format_utc_to_string,
+    geometry_gdf_to_json,
+    get_utm_epsg_code,
+    get_utm_zone,
+    iterate_over_months,
+    mission_data,
+    parse_julian_date_from_path,
+    polygon_to_bbox,
+    reverse_polygon_order,
+    state_abbr,
+)
 
 # ---------------------------------------------------------------------------
 # polygon_to_bbox
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import polygon_to_bbox
 
 
 class TestPolygonToBbox:
@@ -35,7 +50,6 @@ class TestPolygonToBbox:
 # ---------------------------------------------------------------------------
 # get_utm_epsg_code (utils version — takes lon, lat scalars)
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import get_utm_epsg_code
 
 
 class TestGetUtmEpsgCode:
@@ -63,7 +77,6 @@ class TestGetUtmEpsgCode:
 # ---------------------------------------------------------------------------
 # get_utm_zone (utils version)
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import get_utm_zone
 
 
 class TestGetUtmZone:
@@ -88,7 +101,6 @@ class TestGetUtmZone:
 # ---------------------------------------------------------------------------
 # mission_data
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import mission_data
 
 
 class TestMissionData:
@@ -114,7 +126,6 @@ class TestMissionData:
 # ---------------------------------------------------------------------------
 # convert_to_utc
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import convert_to_utc
 
 
 class TestConvertToUtc:
@@ -132,7 +143,6 @@ class TestConvertToUtc:
 # ---------------------------------------------------------------------------
 # format_utc_to_string
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import format_utc_to_string
 
 
 class TestFormatUtcToString:
@@ -150,7 +160,6 @@ class TestFormatUtcToString:
 # ---------------------------------------------------------------------------
 # parse_julian_date_from_path
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import parse_julian_date_from_path
 
 
 class TestParseJulianDateFromPath:
@@ -171,7 +180,6 @@ class TestParseJulianDateFromPath:
 # ---------------------------------------------------------------------------
 # clean_state_name
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import clean_state_name
 
 
 class TestCleanStateName:
@@ -188,7 +196,6 @@ class TestCleanStateName:
 # ---------------------------------------------------------------------------
 # state_abbr
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import state_abbr
 
 
 class TestStateAbbr:
@@ -205,7 +212,6 @@ class TestStateAbbr:
 # ---------------------------------------------------------------------------
 # reverse_polygon_order
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import reverse_polygon_order
 
 
 class TestReversePolygonOrder:
@@ -226,7 +232,6 @@ class TestReversePolygonOrder:
 # ---------------------------------------------------------------------------
 # iterate_over_months
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import iterate_over_months
 
 
 class TestIterateOverMonths:
@@ -251,7 +256,6 @@ class TestIterateOverMonths:
 # ---------------------------------------------------------------------------
 # extract_coordinates (Tier 2 — needs shapely fixtures)
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import extract_coordinates
 
 
 class TestExtractCoordinates:
@@ -286,7 +290,6 @@ class TestExtractCoordinates:
 # ---------------------------------------------------------------------------
 # geometry_gdf_to_json
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import geometry_gdf_to_json
 
 
 class TestGeometryGdfToJson:
@@ -302,7 +305,6 @@ class TestGeometryGdfToJson:
 # ---------------------------------------------------------------------------
 # aoi_area_in_km2
 # ---------------------------------------------------------------------------
-from scintilla.common.utils import aoi_area_in_km2
 
 
 class TestAoiAreaInKm2:
