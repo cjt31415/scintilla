@@ -1,6 +1,6 @@
 # scintilla
 
-**A NASA Earth-science data pipeline for searching, downloading, clipping, and animating lightning data.** Primary use case: generate time-lapse maps of real thunderstorms from public NASA datasets — GLM on the GOES-R series (geostationary), and ISS LIS on the International Space Station (low Earth orbit).
+**scintilla** (Latin for *spark*) is a NASA Earth-science data pipeline for searching, downloading, clipping, and animating lightning data. Primary use case: generate time-lapse maps of real thunderstorms from public NASA datasets — GLM on the GOES-R series (geostationary), and ISS LIS on the International Space Station (low Earth orbit).
 
 ![Demo: GLM lightning + ISS LIS flash overlay, US/Mexico border, 2023-07-30](docs/img/demo.gif)
 
