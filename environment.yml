@@ -9,6 +9,10 @@ dependencies:
   # Geospatial / GIS C-extension stack (install via conda to avoid
   # GDAL/PROJ/GEOS ABI mismatches that pip-only installs commonly hit)
   - gdal>=3.7
+  # GDAL ≥3.11 splits the netCDF driver into a separate plugin package
+  # (older gdal builds bundled it). We need it because cut_glm_aoi_chips.py
+  # opens raw GLM files via `rioxarray.open_rasterio("netcdf:...")`.
+  - libgdal-netcdf
   - proj>=9.3
   - geos>=3.12
   - cartopy>=0.22
