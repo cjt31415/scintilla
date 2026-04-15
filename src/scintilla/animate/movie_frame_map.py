@@ -65,44 +65,63 @@ def compute_drawn_map_bounds(fig_size, map_extent, axes_bbox):
 
 
 def draw_clock(ax, current_time):
+    """Draw an analog clock face as a peripheral-awareness indicator.
+
+    Design goal: the minute hand's between-frame sweep is parseable at a
+    glance without stealing foveal attention from the map content. The
+    face is semi-transparent so basemap terrain shows faintly behind it;
+    the 12 o'clock tick is emphasized so face orientation is obvious
+    without explicit hour labels.
+    """
     clock_radius = 1
-    ax.set_xlim(-1.5, 1.5)
-    ax.set_ylim(-1.5, 1.5)
+    # Tight bounds — no room needed for outside-the-face text labels.
+    ax.set_xlim(-1.1, 1.1)
+    ax.set_ylim(-1.1, 1.1)
     ax.set_aspect('equal', 'box')
     ax.axis('off')
 
-    # Draw clock face
-    circle = plt.Circle((0, 0), clock_radius, edgecolor='black', facecolor='white')
+    # Clock face: 85% opaque white so map terrain faintly shows through.
+    # Opaque black outline so the clock is always clearly demarcated
+    # regardless of what's behind it.
+    circle = plt.Circle(
+        (0, 0), clock_radius,
+        edgecolor='black',
+        facecolor=(1, 1, 1, 0.85),
+        linewidth=1.5,
+    )
     ax.add_patch(circle)
 
-    # Draw tick marks and labels
+    # Tick marks. The 12 o'clock tick is longer and thicker so the face's
+    # orientation reads instantly without needing explicit "12" text.
     for hour in range(12):
         angle = 2 * np.pi * hour / 12
-        x_start = clock_radius * np.sin(angle)
-        y_start = clock_radius * np.cos(angle)
-        x_end = 0.9 * clock_radius * np.sin(angle)
-        y_end = 0.9 * clock_radius * np.cos(angle)
-        ax.plot([x_start, x_end], [y_start, y_end], color='black')
+        x_out = clock_radius * np.sin(angle)
+        y_out = clock_radius * np.cos(angle)
+        if hour == 0:
+            inner = 0.78
+            lw = 2.8
+        else:
+            inner = 0.88
+            lw = 1.6
+        x_in = inner * clock_radius * np.sin(angle)
+        y_in = inner * clock_radius * np.cos(angle)
+        ax.plot([x_out, x_in], [y_out, y_in], color='black', lw=lw)
 
-    # Label specific hours
-    hour_labels = {0: "12", 3: "3", 6: "6", 9: "9"}
-    for hour, label in hour_labels.items():
-        angle = 2 * np.pi * hour / 12
-        x = 1.1 * clock_radius * np.sin(angle)
-        y = 1.1 * clock_radius * np.cos(angle)
-        ax.text(x, y, label, horizontalalignment='center', verticalalignment='center')
-
-    # Calculate angles for the hands
+    # Hand angles (matplotlib 0 = east, rotates counterclockwise; we want
+    # 12 at top, clockwise).
     hours_angle = (3 - (current_time.hour % 12 + current_time.minute / 60)) * 2 * np.pi / 12
     minutes_angle = (15 - (current_time.minute + current_time.second / 60)) * 2 * np.pi / 60
+    hours_angle = np.pi / 2 - hours_angle
+    minutes_angle = np.pi / 2 - minutes_angle
 
-    # Correcting the angles by subtracting from pi/2 to realign
-    hours_angle = np.pi/2 - hours_angle
-    minutes_angle = np.pi/2 - minutes_angle
-
-    # Draw hour and minute hands
-    ax.plot([0, 0.5 * np.sin(hours_angle)], [0, 0.5 * np.cos(hours_angle)], color='black', lw=5)
-    ax.plot([0, 0.8 * np.sin(minutes_angle)], [0, 0.8 * np.cos(minutes_angle)], color='black', lw=3)
+    # Hour hand: short + thick. Minute hand: long + slightly thinner.
+    # Round caps read cleaner at small sizes than the default butt caps.
+    ax.plot([0, 0.50 * np.sin(hours_angle)], [0, 0.50 * np.cos(hours_angle)],
+            color='black', lw=4, solid_capstyle='round')
+    ax.plot([0, 0.85 * np.sin(minutes_angle)], [0, 0.85 * np.cos(minutes_angle)],
+            color='black', lw=2.8, solid_capstyle='round')
+    # Center hub.
+    ax.plot(0, 0, marker='o', markersize=3, color='black')
 
 
 def make_map(region=None,
@@ -141,18 +160,35 @@ def make_map(region=None,
     ax.axis('off')
 
     # Anchor the analog clock to the drawn-map's bottom-right corner.
-    # The figure is 16:9, but cartopy letterboxes the rendered map to
-    # preserve the AOI's aspect ratio, so the right edge of the axes
-    # (x=1.0) is not necessarily the right edge of the visible map —
-    # for a square-ish AOI there's a wide empty strip on either side.
-    # Compute where the map really ends before placing the clock.
+    # Cartopy letterboxes the rendered map to preserve the AOI aspect
+    # ratio, so the right edge of the axes (x=1.0) is NOT necessarily
+    # the right edge of the visible map — for a square-ish AOI there's
+    # a wide empty strip on either side. Compute where the map really
+    # ends, then place the clock fully inside the lower-right corner.
+    #
+    # Axes dimensions are in figure-fraction coordinates but the figure
+    # is 16:9, so fig-x and fig-y units are physically different. We
+    # size the clock axes in INCHES then convert to fig fractions so
+    # that (a) the allocated box is physically square before
+    # set_aspect('equal', 'box') is applied (no implicit shrink), and
+    # (b) the right and bottom paddings are the same physical distance
+    # on screen rather than the same fig-fraction (which would give a
+    # ~1.78x asymmetry on a 16:9 figure).
     _, map_b, map_r, _ = compute_drawn_map_bounds(
         fig_size, map_extent, axes_bbox=(0.0, 0.06, 1.0, 0.93))
-    clock_size = 0.10
-    # Offsets preserve the look of the legacy hard-coded (0.88, 0.12)
-    # position on a 16:9 AOI (where map_r=0.935, map_b=0.06).
-    clock_ax = fig.add_axes(
-        [map_r - 0.055, map_b + 0.06, clock_size, clock_size])
+    clock_diam_in = 0.72   # ~86 px at mp4 120 dpi, ~36 px at gif 50 dpi
+    pad_in = 0.135         # ~same physical distance on all sides
+    fig_w_in, fig_h_in = fig_size
+    clock_w = clock_diam_in / fig_w_in
+    clock_h = clock_diam_in / fig_h_in
+    pad_w = pad_in / fig_w_in
+    pad_h = pad_in / fig_h_in
+    clock_ax = fig.add_axes([
+        map_r - clock_w - pad_w,
+        map_b + pad_h,
+        clock_w,
+        clock_h,
+    ])
     clock_ax.set_aspect('equal', 'box')
     clock_ax.axis('off')
 
