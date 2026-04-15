@@ -258,8 +258,8 @@ GLM-16, with a much better viewing angle to the region, shows that the storm rem
 
 Both rendered videos:
 
-- **GLM-18 version (GOES-West, shows coverage gap)**: *[YouTube/Vimeo link — to be added after upload]*
-- **GLM-16 version (GOES-East, full coverage)**: *[YouTube/Vimeo link — to be added after upload]*
+- **GLM-18 version (GOES-West, shows coverage gap)**: <https://youtu.be/csoez_Rxdh8>
+- **GLM-16 version (GOES-East, fills the gap)**: <https://youtu.be/Ef1qxls_bjY>
 
 The recommended viewing order is G18 first (to see the NE coverage gap and the apparent decay), then G16 (to see how the NE fills in and how the storm is more persistent than G18 alone suggests).
 
