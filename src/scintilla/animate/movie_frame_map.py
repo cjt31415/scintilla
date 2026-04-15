@@ -19,6 +19,51 @@ DEFAULT_FIG_SIZE = (16, 9)
 DEFAULT_FRAME_DPI = 120
 
 
+def compute_drawn_map_bounds(fig_size, map_extent, axes_bbox):
+    """Return the actual drawn-map bounds in figure coordinates, accounting
+    for aspect-preservation letterboxing.
+
+    Cartopy/matplotlib preserve the data aspect ratio when rendering a map,
+    so whichever dimension doesn't match the axes aspect gets letterboxed
+    (empty strips on either side). Overlays anchored to the raw axes bounds
+    (like our analog clock) end up floating in the empty strips when the
+    AOI aspect doesn't match the figure.
+
+    Args:
+        fig_size: (width, height) in inches, e.g. (16, 9).
+        map_extent: [west, east, south, north] in PlateCarree degrees.
+        axes_bbox: (left, bottom, right, top) of the Axes inside the Figure,
+            in figure-fraction coordinates (what subplots_adjust produces).
+
+    Returns:
+        (left, bottom, right, top) of the drawn map in figure coordinates.
+    """
+    axes_l, axes_b, axes_r, axes_t = axes_bbox
+    ax_w_fig = axes_r - axes_l
+    ax_h_fig = axes_t - axes_b
+    ax_physical_aspect = (fig_size[0] * ax_w_fig) / (fig_size[1] * ax_h_fig)
+
+    west, east, south, north = map_extent
+    data_aspect = (east - west) / (north - south)
+
+    if data_aspect >= ax_physical_aspect:
+        # Data is wider than axes — fills horizontally, letterboxed top/bottom
+        map_l, map_r = axes_l, axes_r
+        map_h_frac = ax_physical_aspect / data_aspect
+        extra_v = (1 - map_h_frac) * ax_h_fig
+        map_b = axes_b + extra_v / 2
+        map_t = axes_t - extra_v / 2
+    else:
+        # Data is taller than axes — fills vertically, letterboxed left/right
+        map_b, map_t = axes_b, axes_t
+        map_w_frac = data_aspect / ax_physical_aspect
+        extra_h = (1 - map_w_frac) * ax_w_fig
+        map_l = axes_l + extra_h / 2
+        map_r = axes_r - extra_h / 2
+
+    return map_l, map_b, map_r, map_t
+
+
 def draw_clock(ax, current_time):
     clock_radius = 1
     ax.set_xlim(-1.5, 1.5)
@@ -95,8 +140,19 @@ def make_map(region=None,
     ax.set_extent(map_extent, crs=crs)
     ax.axis('off')
 
-    # Add secondary axis for the clock
-    clock_ax = fig.add_axes([0.88, 0.12, 0.10, 0.10])
+    # Anchor the analog clock to the drawn-map's bottom-right corner.
+    # The figure is 16:9, but cartopy letterboxes the rendered map to
+    # preserve the AOI's aspect ratio, so the right edge of the axes
+    # (x=1.0) is not necessarily the right edge of the visible map —
+    # for a square-ish AOI there's a wide empty strip on either side.
+    # Compute where the map really ends before placing the clock.
+    _, map_b, map_r, _ = compute_drawn_map_bounds(
+        fig_size, map_extent, axes_bbox=(0.0, 0.06, 1.0, 0.93))
+    clock_size = 0.10
+    # Offsets preserve the look of the legacy hard-coded (0.88, 0.12)
+    # position on a 16:9 AOI (where map_r=0.935, map_b=0.06).
+    clock_ax = fig.add_axes(
+        [map_r - 0.055, map_b + 0.06, clock_size, clock_size])
     clock_ax.set_aspect('equal', 'box')
     clock_ax.axis('off')
 
