@@ -61,7 +61,7 @@ The 23 MB bundled demo renders a real storm animation with no setup beyond `cond
     --output-format mp4
 ```
 
-21 frames of GLM lightning overlaid with one ISS LIS pass (~229 flashes), encoded to `data/movies/us-mexico-border_2023-07-30_2110_2023-07-30_2130.mp4`.
+Times are in **AOI-local time** (MST for this AOI — Arizona, UTC-7 — so `21:10` = `04:10 UTC` the next day). 21 frames of GLM lightning overlaid with one ISS LIS pass (~229 flashes), encoded to `data/movies/us-mexico-border_2023-07-30_2110_2023-07-30_2130.mp4`.
 
 ---
 

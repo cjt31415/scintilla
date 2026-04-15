@@ -30,3 +30,10 @@ _demo_subset/
 # a fresh clone can render the reference animation without any downloads.
 !data/glm_raw/**
 !data/isslis/**
+
+# Generated artifacts from running the demo / any pipeline — regenerable,
+# should not be committed.
+data/glm_clips/
+data/movies/
+data/isslis_clips/
+data/glm_polygons/

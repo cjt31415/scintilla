@@ -20,7 +20,10 @@ cd scintilla
 conda env create -f environment.yml
 conda activate scintilla
 
-# Render the demo animation
+# Render the demo animation. Times are in AOI-local time, which for
+# the us-mexico-border AOI is MST (Arizona, UTC-7) — so "21:10" here
+# corresponds to 04:10 UTC the next day. The movie_map startup banner
+# always prints both local and UTC for clarity.
 ./src/scintilla/animate/movie_map.py \
     --aoi us-mexico-border \
     --start-date "2023-07-30 21:10" --end-date "2023-07-30 21:30" \

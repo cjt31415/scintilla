@@ -218,7 +218,7 @@ And `movie_map` accepts `--goes-satellite fused` which reads from `<aoi>/fused/`
 
 ## Empirical validation on 2023-06-04 Manitoba
 
-Both renders produced, same AOI, same time window (19:00-23:30 UTC), same ISS LIS overlay (1,139 flashes loaded), same frame cadence (1 min), same framerate (12 fps), same 16:9 clip region. Only the GLM satellite differs.
+Both renders produced, same AOI, same time window (**14:00-18:30 CDT = 19:00-23:30 UTC** — `movie_map` filenames below embed the local-time input while the ISS LIS pass timestamps elsewhere in this document are in UTC), same ISS LIS overlay (1,139 flashes loaded), same frame cadence (1 min), same framerate (12 fps), same 16:9 clip region. Only the GLM satellite differs.
 
 Aggregate statistics over the full 4.5-hour render window, computed across all clipped chips:
 
