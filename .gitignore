@@ -18,6 +18,7 @@ build/
 
 # Claude Code
 .claude/
+CLAUDE.md
 
 # Data — user-downloaded raw files should not be committed
 production_data/
