@@ -39,12 +39,14 @@ from scintilla.tools.cut_glm_state_chips import build_states_clip_region
 TMP_DIR = Path("/tmp/ffmpeg")
 FRAME_FORMAT = 'jpg'
 
-# Output profiles: (fig_size, dpi) → pixel dimensions
-# mp4:  1920×1080 (YouTube 1080p) — 16×9 at 120 DPI
-# gif:   800×450  (GitHub README)  — 16×9 at 50 DPI
+# Output profiles: target long-edge pixel count + DPI.
+# Final frame dimensions are derived from the AOI's actual aspect ratio at
+# render time (see compute_fig_size). A 16:9 AOI under the mp4 profile yields
+# 1920×1080. A 1:1 AOI under the mp4 profile yields 1080×1080. A 4:3 AOI
+# yields 1920×1440. Whatever the AOI bbox says.
 OUTPUT_PROFILES = {
-    'mp4': {'fig_size': (16, 9), 'frame_dpi': 120},
-    'gif': {'fig_size': (16, 9), 'frame_dpi': 50},
+    'mp4': {'long_edge_px': 1920, 'frame_dpi': 120},
+    'gif': {'long_edge_px': 800,  'frame_dpi': 50},
 }
 
 
@@ -119,6 +121,47 @@ def aoi_to_extent(aoi_geom):
     lons = [coord[0] for coord in coordinates]
     lats = [coord[1] for coord in coordinates]
     return [min(lons), max(lons), min(lats), max(lats)]
+
+
+def aoi_aspect_from_extent(map_extent):
+    """Width/height aspect from PlateCarree extent [W, E, S, N]."""
+    w = map_extent[1] - map_extent[0]
+    h = map_extent[3] - map_extent[2]
+    return w / h
+
+
+def compute_frame_dims(aoi_aspect, long_edge_px, dpi):
+    """Derive frame dimensions and matching fig_size from AOI aspect.
+
+    Returns (pixel_w, pixel_h, fig_size_in_inches). Pixel dimensions are
+    rounded to even integers — h.264 (and many other codecs) require even
+    width and height.
+    """
+    if aoi_aspect >= 1:
+        pixel_w = long_edge_px
+        pixel_h = round(long_edge_px / aoi_aspect)
+    else:
+        pixel_h = long_edge_px
+        pixel_w = round(long_edge_px * aoi_aspect)
+    if pixel_w % 2:
+        pixel_w += 1
+    if pixel_h % 2:
+        pixel_h += 1
+    fig_size = (pixel_w / dpi, pixel_h / dpi)
+    return pixel_w, pixel_h, fig_size
+
+
+def warn_if_mp4_not_169(aoi_aspect, output_format, region_name):
+    """Soft note when MP4 + non-16:9 AOI. Non-blocking — render proceeds."""
+    if output_format != 'mp4':
+        return
+    target = 16 / 9
+    if abs(aoi_aspect - target) / target <= 0.05:
+        return
+    print(f"NOTE: AOI '{region_name}' aspect is {aoi_aspect:.2f}; "
+          f"MP4 outputs are typically 16:9 ({target:.2f}) for video platforms.")
+    print(f"      To snap to 16:9 first: "
+          f"./src/scintilla/tools/aoi_snap_aspect.py --aoi {region_name} --aspect 16:9")
 
 
 def gdf_to_extent(gdf):
@@ -221,11 +264,10 @@ def map_movie(
 
     background_name = background
     profile = OUTPUT_PROFILES[output_format]
-    fig_size = profile['fig_size']
+    long_edge_px = profile['long_edge_px']
     frame_dpi = profile['frame_dpi']
-    pixel_w = int(fig_size[0] * frame_dpi)
-    pixel_h = int(fig_size[1] * frame_dpi)
-    print(f"Output: {output_format} ({pixel_w}×{pixel_h})")
+    # fig_size is derived below from (aoi_aspect, long_edge_px, frame_dpi)
+    # once map_extent is known.
 
     # Determine timezone from AOI or states
     aoi_for_tz = aoi  # states will be resolved later
@@ -294,6 +336,14 @@ def map_movie(
 
         gpkg_path = GLM_POLYGON_DIR / clean_state / f"{clean_state}_{start_date}_{end_date}_hour.gpkg"
         print(f"gpkg: {gpkg_path}")
+
+    # -----------------------------------------------------------------------
+    # Derive frame dimensions from the AOI's actual bbox aspect (render what
+    # we're given — the AOI's shape is the user's expressed framing intent).
+    aoi_aspect = aoi_aspect_from_extent(map_extent)
+    pixel_w, pixel_h, fig_size = compute_frame_dims(aoi_aspect, long_edge_px, frame_dpi)
+    print(f"Output: {output_format} ({pixel_w}×{pixel_h}, AOI aspect {aoi_aspect:.2f})")
+    warn_if_mp4_not_169(aoi_aspect, output_format, region_name)
 
     # -----------------------------------------------------------------------
     # Build the per-frame time list. With GLM, frames are driven by the

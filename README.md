@@ -31,11 +31,11 @@ conda activate scintilla
     --output-format mp4
 ```
 
-The output lands at `data/movies/us-mexico-border_2023-07-30_2110_2023-07-30_2130.mp4`.
+The output lands at `data/movies/us-mexico-border_2023-07-30_2110_2023-07-30_2130.mp4` (1920×1920, square — same shape as the embedded GIF above). The repo also ships a 16:9-snapped `us-mexico-border_169` variant if you'd rather render at video aspect for YouTube.
 
 ### What just happened?
 
-1. `movie_map.py` looked up the `us-mexico-border` AOI from `data/aois/us-mexico-border_aoi.geojson` — a hand-drawn bounding box over the US/Mexico border storm region.
+1. `movie_map.py` looked up the `us-mexico-border` AOI from `data/aois/us-mexico-border_aoi.geojson` — a 1:1 hand-drawn bounding box over the US/Mexico border storm region.
 2. It walked the 20-minute window at 1-minute steps, clipping each raw GLM NetCDF frame from `data/glm_raw/G18/2023/7/31/` down to the AOI polygon and writing per-frame GeoTIFFs to `data/glm_clips/`.
 3. It loaded the matching ISS LIS orbit file from `data/isslis/2023/7/31/` and overlaid the ~229 magenta flash markers onto the frames where the ISS was actually passing overhead.
 4. It encoded the frames into an mp4 via ffmpeg.
@@ -49,7 +49,7 @@ The demo is a complete, runnable slice of the full pipeline — the same code pa
 The 23 MB bundled demo is a *teaser*. To run the pipeline against your own storms you'll need:
 
 1. **A NASA EarthData account** (free, takes 2 minutes) — credentials go in `~/.netrc`. See [`docs/INSTALL.md`](docs/INSTALL.md) for setup.
-2. **An AOI** — a GeoJSON bounding box over the region you care about. Draw one at <https://geojson.io> and save as `data/aois/<name>_aoi.geojson`. For 16:9 animation framing, pipe it through `src/scintilla/tools/aoi_to_16-9.py`.
+2. **An AOI** — a GeoJSON bounding box over the region you care about. Draw one at <https://geojson.io> and save as `data/aois/<name>_aoi.geojson`. The renderer respects the AOI's actual aspect ratio. If you want to snap to a specific aspect (e.g., 16:9 for YouTube, 1:1 for a square thumbnail), pipe it through `src/scintilla/tools/aoi_snap_aspect.py --aspect 16:9` (or `1:1`, `4:3`, etc.).
 3. **The full pipeline** — search granules, download, clip, animate. See [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) for the common command sequences and [`docs/GLM_Lightning_Pipeline.md`](docs/GLM_Lightning_Pipeline.md) for the end-to-end architecture.
 
 ### Finding interesting storms

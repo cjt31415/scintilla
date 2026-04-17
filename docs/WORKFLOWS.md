@@ -17,7 +17,7 @@ An AOI has four jobs:
 3. **It sets the map extent** for animations — `movie_map.py` uses the AOI bounds to frame every video.
 4. **It anchors the local timezone** — the AOI centroid is fed through `timezonefinder` so that `--start-date`/`--end-date` are interpreted in the region's actual local time, not UTC.
 
-Because of job #3, AOIs for animations should be **roughly 16:9** (the standard video aspect ratio). More on that below.
+Because of job #3, the AOI's bbox shape determines the output frame's aspect ratio — `movie_map.py` renders what you give it. Draw a 16:9 AOI to get a 16:9 video; draw a square AOI to get a square video. If you want to commit to a specific aspect (e.g., 16:9 for YouTube), see "Snapping an AOI to a target aspect" below.
 
 ### Drawing a new AOI
 
@@ -27,17 +27,21 @@ Add a `"name"` property and optionally a `"peak_event"` description in the prope
 
 You can also use QGIS or any other GIS tool. The only requirement is a single-feature Polygon in a FeatureCollection, in WGS84 (EPSG:4326). Rectangles work best but any polygon will do.
 
-### 16:9 aspect-ratio variant for video framing
+### Snapping an AOI to a target aspect
 
-mp4 animations target 1920×1080 (16:9). If your hand-drawn AOI is off — say 1.5:1 or 2:1 — the rendered frames will have wasted basemap margins, or worse, the storm will spill outside the visible frame. Generate a sibling 16:9 AOI with `aoi_to_16-9.py`:
+The renderer derives output dimensions from the AOI's actual bbox aspect, so a hand-drawn AOI that's off — say 1.5:1 or 2:1 instead of 16:9 — produces a video at that aspect. The mp4 + non-16:9 combination also prints a non-blocking note pointing here, since YouTube and most video platforms expect 16:9.
+
+To commit to a specific aspect, snap a sibling AOI with `aoi_snap_aspect.py`:
 
 ```bash
-./src/scintilla/tools/aoi_to_16-9.py --aoi <name> --output-name <name>_169
+./src/scintilla/tools/aoi_snap_aspect.py --aoi <name>                # 16:9 (default)
+./src/scintilla/tools/aoi_snap_aspect.py --aoi <name> --aspect 1:1   # square thumbnail
+./src/scintilla/tools/aoi_snap_aspect.py --aoi <name> --aspect 9:16  # vertical/mobile
 ```
 
-This writes `data/aois/<name>_169_aoi.geojson` alongside the original, with the latitude range expanded or contracted to land exactly on 16:9. Keep both: the original for gif previews and the 169 variant for the final mp4/YouTube render.
+Default output names: `<name>_169` for 16:9 (preserves the legacy convention), `<name>_WxH` otherwise (`<name>_1x1`, `<name>_4x3`, etc.). Override with `--output-name`.
 
-Example: the Manitoba AOI shipped with this repo (`mb-2023-06-04_169_aoi.geojson`) came from a hand-drawn 18°×10° box that was *almost* 16:9 (1.800). `aoi_to_16-9.py` nudged it to 18°×10.125° (1.7778 = exactly 16/9).
+Example: the Manitoba AOI shipped with this repo (`mb-2023-06-04_169_aoi.geojson`) came from a hand-drawn 18°×10° box that was *almost* 16:9 (1.800). The snap nudged it to 18°×10.125° (1.7778 = exactly 16/9).
 
 ### Programmatic AOI manipulation
 
@@ -61,7 +65,7 @@ The 23 MB bundled demo renders a real storm animation with no setup beyond `cond
     --output-format mp4
 ```
 
-Times are in **AOI-local time** (MST for this AOI — Arizona, UTC-7 — so `21:10` = `04:10 UTC` the next day). 21 frames of GLM lightning overlaid with one ISS LIS pass (~229 flashes), encoded to `data/movies/us-mexico-border_2023-07-30_2110_2023-07-30_2130.mp4`.
+Times are in **AOI-local time** (MST for this AOI — Arizona, UTC-7 — so `21:10` = `04:10 UTC` the next day). 21 frames of GLM lightning overlaid with one ISS LIS pass (~229 flashes), encoded to `data/movies/us-mexico-border_2023-07-30_2110_2023-07-30_2130.mp4` (1920×1920, square — the shipped `us-mexico-border` AOI is 1:1).
 
 ---
 

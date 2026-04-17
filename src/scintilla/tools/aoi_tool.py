@@ -10,13 +10,14 @@
     Edit mode:   Load an existing AOI, redraw, save
 
     Usage:
-        ./aoi_tool.py                                    # view all AOIs
-        ./aoi_tool.py --filter tucson                    # view tucson-related AOIs
-        ./aoi_tool.py --create                           # create new AOI
-        ./aoi_tool.py --create --near arizona            # create, start near Arizona
-        ./aoi_tool.py --create --snap-to-169             # create with 16:9 snap
-        ./aoi_tool.py --edit tucson-area                 # edit existing AOI
-        ./aoi_tool.py --edit tucson-area --snap-to-169   # edit + snap to 16:9
+        ./aoi_tool.py                                       # view all AOIs
+        ./aoi_tool.py --filter tucson                       # view tucson-related AOIs
+        ./aoi_tool.py --create                              # create new AOI
+        ./aoi_tool.py --create --near arizona               # create, start near Arizona
+        ./aoi_tool.py --create --snap-aspect 16:9           # create with 16:9 snap
+        ./aoi_tool.py --create --snap-aspect 1:1            # create with square snap
+        ./aoi_tool.py --edit tucson-area                    # edit existing AOI
+        ./aoi_tool.py --edit tucson-area --snap-aspect 4:3  # edit + snap to 4:3
 """
 
 import argparse
@@ -44,9 +45,19 @@ def get_aoi_bounds(name):
     return [[miny, minx], [maxy, maxx]]
 
 
-def snap_to_169(west, east, south, north, mode=None):
-    """Adjust a bounding box to 16:9 aspect ratio, expanding as needed.
+def parse_aspect(s):
+    """Parse a 'W:H' string into a float (width/height).
 
+    Examples: '16:9' → 1.778, '1:1' → 1.0, '4:3' → 1.333, '9:16' → 0.5625.
+    """
+    w, h = s.split(':')
+    return float(w) / float(h)
+
+
+def snap_to_aspect(west, east, south, north, target_aspect, mode=None):
+    """Adjust a bounding box to the target aspect ratio, expanding as needed.
+
+    `target_aspect` is width/height (e.g., 16/9 ≈ 1.778, 1.0 for square).
     `mode` controls which axis to expand:
         'horizontal' — widen east-west
         'vertical'   — extend north-south
@@ -54,18 +65,17 @@ def snap_to_169(west, east, south, north, mode=None):
     """
     width = east - west
     height = north - south
-    target_ratio = 16 / 9
 
     if mode is None:
-        mode = 'horizontal' if (width / height) < target_ratio else 'vertical'
+        mode = 'horizontal' if (width / height) < target_aspect else 'vertical'
 
     if mode == 'horizontal':
-        new_width = height * target_ratio
+        new_width = height * target_aspect
         delta = (new_width - width) / 2
         west -= delta
         east += delta
     else:
-        new_height = width / target_ratio
+        new_height = width / target_aspect
         delta = (new_height - height) / 2
         south -= delta
         north += delta
@@ -146,7 +156,7 @@ def fit_to_aois(m, aoi_names, focus_name=None):
         m.fit_bounds([sw, ne], padding=[20, 20])
 
 
-def build_interactive_map(aoi_names, edit_name=None, near_name=None, snap_169=False):
+def build_interactive_map(aoi_names, edit_name=None, near_name=None, snap_aspect_str=None):
     """Build a folium map with drawing tools that POST the selection to localhost."""
     m = folium.Map(location=[34.0, -111.0], zoom_start=5,
                    tiles='CartoDB positron', control_scale=True)
@@ -166,7 +176,12 @@ def build_interactive_map(aoi_names, edit_name=None, near_name=None, snap_169=Fa
 
     # JavaScript: on draw, POST coordinates to localhost, show confirmation
     map_var = m.get_name()  # already includes 'map_' prefix
-    snap_flag = 'true' if snap_169 else 'false'
+    if snap_aspect_str:
+        snap_target_js = repr(parse_aspect(snap_aspect_str))
+        snap_label = snap_aspect_str
+    else:
+        snap_target_js = 'null'
+        snap_label = ''
     js = f"""
     <script>
     document.addEventListener('DOMContentLoaded', function() {{
@@ -178,19 +193,20 @@ def build_interactive_map(aoi_names, edit_name=None, near_name=None, snap_169=Fa
                 var south = bounds.getSouth(), north = bounds.getNorth();
                 var west = bounds.getWest(), east = bounds.getEast();
 
-                if ({snap_flag}) {{
+                var snapTarget = {snap_target_js};
+                if (snapTarget !== null) {{
                     var width = east - west, height = north - south;
-                    var ratio = width / height, target = 16/9;
-                    if (ratio < target) {{
-                        var d = (height * target - width) / 2;
+                    var ratio = width / height;
+                    if (ratio < snapTarget) {{
+                        var d = (height * snapTarget - width) / 2;
                         west -= d; east += d;
                     }} else {{
-                        var d = (width / target - height) / 2;
+                        var d = (width / snapTarget - height) / 2;
                         south -= d; north += d;
                     }}
                     L.rectangle([[south, west], [north, east]], {{
                         color: 'green', weight: 2, dashArray: '5,5', fill: false
-                    }}).addTo(map).bindPopup('16:9 snapped');
+                    }}).addTo(map).bindPopup('{snap_label} snapped');
                 }}
 
                 var data = {{west: west, east: east, south: south, north: north}};
@@ -274,7 +290,7 @@ def view_mode(aoi_names):
     subprocess.run(['open', str(html_path)])
 
 
-def interactive_mode(edit_name, near_name, snap_169, filter_terms=None):
+def interactive_mode(edit_name, near_name, snap_aspect_str, filter_terms=None):
     """Create or edit an AOI interactively."""
     EXCHANGE_DIR.mkdir(exist_ok=True)
     all_names = aoi_list()
@@ -290,7 +306,7 @@ def interactive_mode(edit_name, near_name, snap_169, filter_terms=None):
         show_names.append(edit_name)
 
     m = build_interactive_map(show_names, edit_name=edit_name,
-                               near_name=near_name, snap_169=snap_169)
+                               near_name=near_name, snap_aspect_str=snap_aspect_str)
 
     # Save to temp file first (ensures all Elements are included),
     # then read back the HTML to serve from localhost
@@ -300,7 +316,7 @@ def interactive_mode(edit_name, near_name, snap_169, filter_terms=None):
     html_content = tmp_path.read_text()
 
     mode_str = f"Edit: {edit_name}" if edit_name else "Create new AOI"
-    snap_str = " [16:9 snap]" if snap_169 else ""
+    snap_str = f" [{snap_aspect_str} snap]" if snap_aspect_str else ""
 
     print(f"\n{'='*55}")
     print(f"  {mode_str}{snap_str}")
@@ -340,8 +356,9 @@ def interactive_mode(edit_name, near_name, snap_169, filter_terms=None):
     south, north = data['south'], data['north']
 
     # Apply snap on Python side too
-    if snap_169:
-        west, east, south, north = snap_to_169(west, east, south, north)
+    if snap_aspect_str:
+        target_aspect = parse_aspect(snap_aspect_str)
+        west, east, south, north = snap_to_aspect(west, east, south, north, target_aspect)
 
     # Calculate area
     geom_json = {
@@ -385,8 +402,8 @@ def parse_opt():
                         help='filter which AOIs are shown (all modes)')
     parser.add_argument('--near', type=str, metavar='AOI',
                         help='center initial view near this AOI (create mode)')
-    parser.add_argument('--snap-to-169', action='store_true',
-                        help='snap the AOI to 16:9 aspect ratio')
+    parser.add_argument('--snap-aspect', type=str, default=None, metavar='W:H',
+                        help='snap the AOI to a target aspect ratio (e.g., 16:9, 1:1, 4:3, 9:16)')
 
     return parser.parse_args()
 
@@ -396,7 +413,7 @@ def main():
 
     if opt.create or opt.edit:
         interactive_mode(edit_name=opt.edit, near_name=opt.near,
-                         snap_169=opt.snap_to_169, filter_terms=opt.filter)
+                         snap_aspect_str=opt.snap_aspect, filter_terms=opt.filter)
     else:
         names = aoi_list()
         if opt.filter:
