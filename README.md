@@ -68,11 +68,9 @@ See [`docs/README_ISSLIS.md`](docs/README_ISSLIS.md) for the full discovery work
 
 ---
 
-## A real finding from this pipeline
+## Storm gallery
 
-Running the same storm through both GLM satellites (GOES-East `G16` and GOES-West `G18`) revealed a real geometric limitation. At the northeast corner of a Manitoba AOI in June 2023, GOES-West sees the region at ~74° zenith angle, where its optical detection efficiency drops significantly. GOES-East, looking at the same storm from ~62° zenith, catches **80% more non-zero pixel-minutes** and **2.4× more total optical energy** — and the G16 detections overlay exactly on the ISS LIS flash markers that were standing alone in the G18 render.
-
-The full analysis — zenith-angle math, empirical comparison numbers, and a discussion of multi-satellite fusion — is in [`docs/glm_sensor_coverage.md`](docs/glm_sensor_coverage.md). This pipeline was built to render storm animations, but it's also a usable tool for validating lightning-sensor coverage claims.
+The pipeline has rendered several storms beyond the bundled demo — including a Manitoba storm that surfaced an 80% GLM coverage gap when swapping satellites, and two Tucson monsoons paired with ground-level trail-camera time-lapses shot from inside the AOI. Index with YouTube links: [`docs/storm_gallery.md`](docs/storm_gallery.md).
 
 ---
 
@@ -84,6 +82,7 @@ The full analysis — zenith-angle math, empirical comparison numbers, and a dis
 | [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md) | Day-to-day command sequences for common tasks |
 | [`docs/GLM_Lightning_Pipeline.md`](docs/GLM_Lightning_Pipeline.md) | End-to-end architecture and per-step script reference |
 | [`docs/README_ISSLIS.md`](docs/README_ISSLIS.md) | ISS LIS data flow, parquet index, discovery tool |
+| [`docs/storm_gallery.md`](docs/storm_gallery.md) | Index of rendered storms with YouTube links and AOI/window details |
 | [`docs/glm_sensor_coverage.md`](docs/glm_sensor_coverage.md) | GLM zenith-angle geometry, G16 vs G18 validation, fusion sketch |
 | [`docs/GLM_ISSLIS_cross_sensor_validation.md`](docs/GLM_ISSLIS_cross_sensor_validation.md) | Cross-sensor spatial-accuracy validation (~9 km agreement) |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Architectural decisions and rejected approaches |
