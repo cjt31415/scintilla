@@ -250,7 +250,7 @@ The animation pipeline:
 
 Areas of interest are stored as GeoJSON files in `data/aois/` following the naming convention `<name>_aoi.geojson`. Example AOIs include geographic regions (florida, arizona, bayarea), cities (tucson, houston-area), and international locations (catatumbo, porto-alegra).
 
-For animations, the AOI should approximate a 16:9 aspect ratio. The utility `src/scintilla/tools/aoi_to_16-9.py` adjusts an arbitrary AOI polygon to 16:9.
+The renderer respects the AOI's actual aspect ratio — output dimensions are derived from the AOI bbox at render time. If you want to commit to a specific aspect (e.g., 16:9 for YouTube, 1:1 for a square thumbnail), the utility `src/scintilla/tools/aoi_snap_aspect.py --aspect W:H` snaps an arbitrary AOI polygon to the target ratio.
 
 ---
 

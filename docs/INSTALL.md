@@ -38,7 +38,7 @@ The repo ships with a ~23 MB demo subset, so you can render a real storm animati
 
 `--start-date` / `--end-date` are interpreted in the **AOI's local timezone** — for `us-mexico-border` that's MST (Arizona, UTC-7), so `21:10` here corresponds to `04:10 UTC` the next day. The movie_map startup banner always prints both local and UTC to remove any ambiguity.
 
-Output lands at `data/movies/us-mexico-border_2023-07-30_2110_2023-07-30_2130.mp4`. **If this works, your install is good.**
+Output lands at `data/movies/us-mexico-border_2023-07-30_2110_2023-07-30_2130.mp4` (1920×1920, square — the shipped `us-mexico-border` AOI is 1:1). **If this works, your install is good.**
 
 If you want to point scintilla at a larger data directory (for real work beyond the demo), set `SCINTILLA_DATA_DIR`:
 

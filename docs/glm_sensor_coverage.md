@@ -53,7 +53,7 @@ Where `Re` = 6378.14 km (Earth equatorial radius) and `Rg` = 42164.17 km (geosta
 
 ### Corner values for the `mb-2023-06-04_169` AOI
 
-AOI bbox after 16:9 snap: lat 42.94° – 53.06°, lon −109.00° – −91.00° (per `aoi_to_16-9.py` output).
+AOI bbox after 16:9 snap: lat 42.94° – 53.06°, lon −109.00° – −91.00° (per `aoi_snap_aspect.py` output).
 
 | Corner | Lat | Lon | GLM-18 (−137.2°W) | GLM-16 (−75.2°W) |
 |---|---|---|---|---|
